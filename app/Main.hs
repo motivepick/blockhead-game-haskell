@@ -21,9 +21,11 @@ difficultyFromDto Easy = L.Easy
 difficultyFromDto Medium = L.Medium
 difficultyFromDto Hard = L.Hard
 
-data MoveRequest = MoveRequest {field :: Field, usedWords :: [String], difficulty :: DifficultyDto} deriving (Show, Generic)
+data MoveRequest = MoveRequest {field :: Field, usedWords :: [String], difficulty :: DifficultyDto} deriving (Generic)
+instance Show MoveRequest
 
-data MoveResponse = MoveResponse {success :: Bool, updatedField :: [String], path :: [(Int, Int)], word :: String, cell :: (Int, Int), letter :: Char} deriving (Show, Generic)
+data MoveResponse = MoveResponse {success :: Bool, updatedField :: Field, path :: [(Int, Int)], word :: String, cell :: (Int, Int), letter :: Char} deriving (Generic)
+instance Show MoveResponse
 
 instance A.ToJSON DifficultyDto
 
