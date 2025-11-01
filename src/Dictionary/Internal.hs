@@ -1,7 +1,6 @@
 module Dictionary.Internal where
 
 import qualified Data.HashSet as S
-import Data.List.Split (splitOn)
 import Paths_blockhead_game (getDataFileName)
 
 newtype Dictionary = Dictionary (S.HashSet String)

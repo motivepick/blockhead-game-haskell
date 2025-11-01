@@ -11,7 +11,8 @@ import GHC.Generics (Generic)
 import qualified Lib as L
 import Network.Wai (Middleware)
 import Network.Wai.Middleware.Cors (CorsResourcePolicy, cors, corsMethods, corsRequestHeaders, simpleCorsResourcePolicy, simpleHeaders, simpleMethods)
-import Web.Scotty (ActionM, get, json, jsonData, middleware, param, post, scotty)
+import Web.Scotty (ActionM, get, json, jsonData, middleware, post, scotty, pathParam)
+import Field (Field)
 
 data DifficultyDto = Easy | Medium | Hard deriving (Show, Generic)
 
@@ -20,7 +21,7 @@ difficultyFromDto Easy = L.Easy
 difficultyFromDto Medium = L.Medium
 difficultyFromDto Hard = L.Hard
 
-data MoveRequest = MoveRequest {field :: [String], usedWords :: [String], difficulty :: DifficultyDto} deriving (Show, Generic)
+data MoveRequest = MoveRequest {field :: Field, usedWords :: [String], difficulty :: DifficultyDto} deriving (Show, Generic)
 
 data MoveResponse = MoveResponse {success :: Bool, updatedField :: [String], path :: [(Int, Int)], word :: String, cell :: (Int, Int), letter :: Char} deriving (Show, Generic)
 
@@ -50,7 +51,7 @@ main = do
   scotty 8080 $ do
     middleware allowCorsWithPreflight
     get "/api/field/:size" $ do
-      size <- param "size"
+      size <- pathParam "size"
       field <- liftIO $ L.createNewField dictionary size
       json field
     post "/api/move-requests" $ do
