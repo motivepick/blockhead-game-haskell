@@ -58,7 +58,7 @@ getWords'' prefixDictionary field (cell, letter) = map (\(word, path) -> (path, 
     fieldAfterMove = replaceLetter field cell letter
 
 getWords''' :: PrefixDictionary -> Field -> Cell -> [WordPath]
-getWords''' prefixDictionary field updatedCell = filter (\(_, path) -> updatedCell `elem` path) $ concatMap (paths prefixDictionary field) $ cellsWithLetters field
+getWords''' prefixDictionary field updatedCell = concatMap (filter (\(_, path) -> updatedCell `elem` path) . paths prefixDictionary field) (cellsWithLetters field)
 
 paths :: PrefixDictionary -> Field -> Cell -> [WordPath]
 paths prefixDictionary field start = paths' prefixDictionary field start (S.singleton start) ([field `letterAt` start], [start])
@@ -68,7 +68,7 @@ paths' prefixDictionary@(PrefixDictionary prefixes) field current visited wordPa
   | word `S.member` prefixes = wordPathSoFar : concatMap (\cell -> paths' prefixDictionary field cell (cell `S.insert` visited) (appendCell field wordPathSoFar cell)) (reachableCells field current visited)
   | otherwise = []
 
-mkUniq :: (Eq a, Hashable a) => [a] -> [a]
+mkUniq :: (Hashable a) => [a] -> [a]
 mkUniq = S.toList . S.fromList
 
 makeMove :: PrefixDictionary -> Dictionary -> Difficulty -> [String] -> Field -> IO (Bool, Field, Path, String, Move)

@@ -7,12 +7,12 @@ module Main (main) where
 import Control.Monad.IO.Class (liftIO)
 import qualified Data.Aeson as A
 import Dictionary (readDictionary, toPrefixDictionary)
+import Field (Field)
 import GHC.Generics (Generic)
 import qualified Lib as L
 import Network.Wai (Middleware)
 import Network.Wai.Middleware.Cors (CorsResourcePolicy, cors, corsMethods, corsRequestHeaders, simpleCorsResourcePolicy, simpleHeaders, simpleMethods)
-import Web.Scotty (ActionM, get, json, jsonData, middleware, post, scotty, pathParam)
-import Field (Field)
+import Web.Scotty (ActionM, get, json, jsonData, middleware, post, queryParam, scotty)
 
 data DifficultyDto = Easy | Medium | Hard deriving (Show, Generic)
 
@@ -22,9 +22,11 @@ difficultyFromDto Medium = L.Medium
 difficultyFromDto Hard = L.Hard
 
 data MoveRequest = MoveRequest {field :: Field, usedWords :: [String], difficulty :: DifficultyDto} deriving (Generic)
+
 instance Show MoveRequest
 
 data MoveResponse = MoveResponse {success :: Bool, updatedField :: Field, path :: [(Int, Int)], word :: String, cell :: (Int, Int), letter :: Char} deriving (Generic)
+
 instance Show MoveResponse
 
 instance A.ToJSON DifficultyDto
@@ -52,8 +54,8 @@ main = do
 
   scotty 8080 $ do
     middleware allowCorsWithPreflight
-    get "/api/field/:size" $ do
-      size <- pathParam "size"
+    get "/api/field" $ do
+      size <- queryParam "size"
       field <- liftIO $ L.createNewField dictionary size
       json field
     post "/api/move-requests" $ do
