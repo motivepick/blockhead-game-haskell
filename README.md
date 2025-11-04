@@ -38,9 +38,29 @@ Type `:quit` to exit once done.
 ## Building And Running With Docker
 
 ```shell
-docker build -t blockhead-game .
-docker run -p 8080:8080 -d blockhead-game
+docker build -t yaskovdev/blockhead-game .
+docker run -p 8080:8080 -d yaskovdev/blockhead-game
 ```
+
+## Publishing the Docker Image
+
+```shell
+brew update && brew install azure-cli # if not yet done
+az login
+az acr login --name blockheadgame
+docker tag yaskovdev/blockhead-game blockheadgame.azurecr.io/yaskovdev/blockhead-game:latest
+docker push blockheadgame.azurecr.io/yaskovdev/blockhead-game:latest
+```
+
+## Running in Azure App Service
+
+Follow https://learn.microsoft.com/en-us/azure/app-service/deploy-container-github-action?tabs=publish-profile&pivots=github-actions-containers-linux.
+
+1. Create a resource group.
+2. Create a Container Registry.
+3. Point to the new Container Registry (in https://portal.azure.com/#@yaskov.dev/resource/subscriptions/cb4b7f6f-9e0d-476e-be06-3e896c50b25a/resourceGroups/BlockheadGameRg/providers/Microsoft.Web/sites/blockhead-game-back-end/vstscd).
+1. https://portal.azure.com/#@yaskov.dev/resource/subscriptions/cb4b7f6f-9e0d-476e-be06-3e896c50b25a/resourceGroups/blockheadgamerg/providers/Microsoft.Web/sites/blockhead-game-back-end/configuration, based on https://stackoverflow.com/a/77813711/1862286.
+
 
 ## API
 

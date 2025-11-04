@@ -20,7 +20,7 @@ data Difficulty = Easy | Medium | Hard
 -- | The bigger the value the easier to play.
 wordPickRange :: Difficulty -> Int
 wordPickRange Easy = 30
-wordPickRange Medium = 13
+wordPickRange Medium = 14
 wordPickRange Hard = 0
 
 createNewField :: Dictionary -> Int -> IO Field
@@ -75,7 +75,7 @@ makeMove :: PrefixDictionary -> Dictionary -> Difficulty -> [String] -> Field ->
 makeMove prefixDictionary (Dictionary ws) difficulty usedWords field = do
   let foundWords = filter (\(_, w, _) -> w `S.member` ws && (w `notElem` usedWords)) $ getWords prefixDictionary field
   if null foundWords
-    then do
+    then
       return (False, field, [], "", ((0, 0), ' '))
     else do
       let longestWordsFirst = sortBy (\(_, a, _) (_, b, _) -> compare (length b) (length a)) foundWords

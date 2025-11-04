@@ -1,4 +1,4 @@
-FROM haskell:latest
+FROM amd64/haskell:latest
 
 WORKDIR /app
 
