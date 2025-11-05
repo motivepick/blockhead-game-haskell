@@ -1,4 +1,5 @@
-FROM amd64/haskell:latest
+ARG BASE_IMAGE="amd64/haskell:latest"
+FROM ${BASE_IMAGE}
 
 WORKDIR /app
 
