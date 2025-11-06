@@ -58,14 +58,22 @@ getWords'' prefixDictionary field (cell, letter) = map (\(word, path) -> (path, 
     fieldAfterMove = replaceLetter field cell letter
 
 getWords''' :: PrefixDictionary -> Field -> Cell -> [WordPath]
-getWords''' prefixDictionary field updatedCell = concatMap (filter (\(_, path) -> updatedCell `elem` path) . paths prefixDictionary field) (cellsWithLetters field)
+getWords''' prefixDictionary field updatedCell = concatMap (filter (\(_, path) -> updatedCell `elem` path) . findWordPaths prefixDictionary field) (cellsWithLetters field)
 
-paths :: PrefixDictionary -> Field -> Cell -> [WordPath]
-paths prefixDictionary field start = paths' prefixDictionary field start (S.singleton start) ([field @ start], [start])
+findWordPaths :: PrefixDictionary -> Field -> Cell -> [WordPath]
+findWordPaths prefixDictionary field start = findWordPaths' prefixDictionary field start (S.singleton start) ([field @ start], [start])
 
-paths' :: PrefixDictionary -> Field -> Cell -> S.HashSet Cell -> WordPath -> [WordPath]
-paths' prefixDictionary@(PrefixDictionary prefixes) field current visited wordPathSoFar@(word, _)
-  | word `S.member` prefixes = wordPathSoFar : concatMap (\cell -> paths' prefixDictionary field cell (cell `S.insert` visited) (appendCell field wordPathSoFar cell)) (reachableCells field current visited)
+-- | DFS to find all words starting from a given cell.
+-- Returns list of (word, path) pairs.
+-- The words are valid prefixes in the prefix dictionary, however, not all prefixes are full words.
+findWordPaths' :: PrefixDictionary -> Field -> Cell -> S.HashSet Cell -> WordPath -> [WordPath]
+findWordPaths' dict@(PrefixDictionary prefixes) field current visited wordPathSoFar@(word, _)
+  | word `S.member` prefixes =
+      wordPathSoFar : do
+        cell <- reachableCells field current visited
+        let newPath = appendCell field wordPathSoFar cell
+            newVisited = S.insert cell visited
+        findWordPaths' dict field cell newVisited newPath
   | otherwise = []
 
 mkUniq :: (Hashable a) => [a] -> [a]
