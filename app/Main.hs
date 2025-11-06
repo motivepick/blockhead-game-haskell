@@ -6,13 +6,14 @@ module Main (main) where
 
 import Control.Monad.IO.Class (liftIO)
 import qualified Data.Aeson as A
-import Dictionary (readDictionary, toPrefixDictionary)
+import Data.Char (toUpper)
+import Dictionary (Dictionary (..), readDictionary, toPrefixDictionary)
 import Field (Field)
 import GHC.Generics (Generic)
 import qualified Lib as L
 import Network.Wai (Middleware)
 import Network.Wai.Middleware.Cors (CorsResourcePolicy, cors, corsMethods, corsRequestHeaders, simpleCorsResourcePolicy, simpleHeaders, simpleMethods)
-import Web.Scotty (ActionM, get, json, jsonData, middleware, post, queryParam, scotty)
+import Web.Scotty (ActionM, get, json, jsonData, middleware, pathParam, post, queryParam, scotty)
 
 data DifficultyDto = Easy | Medium | Hard deriving (Show, Generic)
 
@@ -58,6 +59,10 @@ main = do
       size <- queryParam "size"
       field <- liftIO $ L.createNewField dictionary size
       json field
+    get "/api/words/:word/exists" $ do
+      word <- pathParam "word"
+      let Dictionary ws = dictionary
+      json $ map toUpper word `elem` ws
     post "/api/move-requests" $ do
       MoveRequest {field, usedWords, difficulty} <- jsonData :: ActionM MoveRequest
       (success, updatedField, path, word, (cell, letter)) <- liftIO $ L.makeMove prefixDictionary dictionary (difficultyFromDto difficulty) usedWords field

@@ -20,7 +20,7 @@ data Difficulty = Easy | Medium | Hard
 -- | The bigger the value the easier to play.
 wordPickRange :: Difficulty -> Int
 wordPickRange Easy = 30
-wordPickRange Medium = 14
+wordPickRange Medium = 15
 wordPickRange Hard = 0
 
 createNewField :: Dictionary -> Int -> IO Field
@@ -38,13 +38,13 @@ reachableCells field cell visited =
     isNotVisitedLetter c = not (c `S.member` visited) && hasLetter field c
 
 appendCell :: Field -> WordPath -> Cell -> WordPath
-appendCell field (word, path) cell = (word ++ [field `letterAt` cell], path ++ [cell])
+appendCell field (word, path) cell = (word ++ [field @ cell], path ++ [cell])
 
 alphabet :: String
 alphabet = ['А' .. 'Е'] ++ ['Ё'] ++ ['Ж' .. 'Я']
 
 getAvailableMoves :: Field -> [Move]
-getAvailableMoves field = concatMap (\cell -> map (cell,) alphabet) $ getAvailableCells field
+getAvailableMoves field = [(cell, letter) | cell <- getAvailableCells field, letter <- alphabet]
 
 getWords :: PrefixDictionary -> Field -> [(Path, String, Move)]
 getWords prefixDictionary field = getWords' prefixDictionary field (getAvailableMoves field)
@@ -61,7 +61,7 @@ getWords''' :: PrefixDictionary -> Field -> Cell -> [WordPath]
 getWords''' prefixDictionary field updatedCell = concatMap (filter (\(_, path) -> updatedCell `elem` path) . paths prefixDictionary field) (cellsWithLetters field)
 
 paths :: PrefixDictionary -> Field -> Cell -> [WordPath]
-paths prefixDictionary field start = paths' prefixDictionary field start (S.singleton start) ([field `letterAt` start], [start])
+paths prefixDictionary field start = paths' prefixDictionary field start (S.singleton start) ([field @ start], [start])
 
 paths' :: PrefixDictionary -> Field -> Cell -> S.HashSet Cell -> WordPath -> [WordPath]
 paths' prefixDictionary@(PrefixDictionary prefixes) field current visited wordPathSoFar@(word, _)

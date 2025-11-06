@@ -1,5 +1,3 @@
-{-# LANGUAGE TupleSections #-}
-
 module Field.Internal where
 
 import qualified Data.Aeson as A
@@ -27,8 +25,8 @@ createField size initWord = replaceRow (createEmptyField size) (size `div` 2) (R
 createEmptyField :: Int -> Field
 createEmptyField size = replicate size $ Row (replicate size '.')
 
-letterAt :: Field -> Cell -> Char
-letterAt field (x, y) = row !! y
+(@) :: Field -> Cell -> Char
+(@) field (x, y) = row !! y
   where
     Row row = field !! x
 
@@ -52,7 +50,7 @@ hasNeighboursWithLetter :: Field -> Cell -> Bool
 hasNeighboursWithLetter field cell = any (hasLetter field) $ field `neighboursOf` cell
 
 isEmpty :: Field -> Cell -> Bool
-isEmpty field cell = field `letterAt` cell == '.'
+isEmpty field cell = field @ cell == '.'
 
 hasLetter :: Field -> Cell -> Bool
 hasLetter field cell = not (isEmpty field cell)
@@ -64,7 +62,7 @@ isCellAvailable :: Field -> Cell -> Bool
 isCellAvailable field cell = isEmpty field cell && hasNeighboursWithLetter field cell
 
 allCells :: Field -> [Cell]
-allCells field = concatMap (\i -> map (i,) [0 .. length (field !! i) - 1]) [0 .. length field - 1]
+allCells field = [(i, j) | i <- [0 .. length field - 1], j <- [0 .. length (field !! i) - 1]]
 
 cellsWithLetters :: Field -> [Cell]
 cellsWithLetters field = filter (hasLetter field) $ allCells field
