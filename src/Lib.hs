@@ -60,21 +60,21 @@ getWords'' prefixDictionary field (cell, letter) = map (\(word, path) -> (path, 
 getWords''' :: PrefixDictionary -> Field -> Cell -> [WordPath]
 getWords''' prefixDictionary field updatedCell = concatMap (filter (\(_, path) -> updatedCell `elem` path) . findWordPaths prefixDictionary field) (cellsWithLetters field)
 
-findWordPaths :: PrefixDictionary -> Field -> Cell -> [WordPath]
-findWordPaths prefixDictionary field start = findWordPaths' prefixDictionary field start (S.singleton start) ([field @ start], [start])
-
 -- | DFS to find all words starting from a given cell.
 -- Returns list of (word, path) pairs.
 -- The words are valid prefixes in the prefix dictionary, however, not all prefixes are full words.
-findWordPaths' :: PrefixDictionary -> Field -> Cell -> S.HashSet Cell -> WordPath -> [WordPath]
-findWordPaths' dict@(PrefixDictionary prefixes) field current visited wordPathSoFar@(word, _)
-  | word `S.member` prefixes =
-      wordPathSoFar : do
-        cell <- reachableCells field current visited
-        let newPath = appendCell field wordPathSoFar cell
-            newVisited = S.insert cell visited
-        findWordPaths' dict field cell newVisited newPath
-  | otherwise = []
+findWordPaths :: PrefixDictionary -> Field -> Cell -> [WordPath]
+findWordPaths (PrefixDictionary prefixes) field start = dfs start (S.singleton start) ([field @ start], [start])
+  where
+    dfs :: Cell -> S.HashSet Cell -> WordPath -> [WordPath]
+    dfs current visited wordPathSoFar@(word, _)
+      | word `S.member` prefixes =
+          wordPathSoFar : do
+            cell <- reachableCells field current visited
+            let newPath = appendCell field wordPathSoFar cell
+                newVisited = S.insert cell visited
+            dfs cell newVisited newPath
+      | otherwise = []
 
 mkUniq :: (Hashable a) => [a] -> [a]
 mkUniq = S.toList . S.fromList
