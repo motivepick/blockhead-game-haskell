@@ -1,7 +1,6 @@
-{-# LANGUAGE TupleSections #-}
-
 module Lib (Field, createField, createNewField, makeMove, Difficulty (Easy, Medium, Hard)) where
 
+import Control.Monad (guard)
 import qualified Data.HashSet as S
 import Data.Hashable (Hashable)
 import Data.List (sortBy)
@@ -47,18 +46,22 @@ getAvailableMoves :: Field -> [Move]
 getAvailableMoves field = [(cell, letter) | cell <- getAvailableCells field, letter <- alphabet]
 
 getWords :: PrefixDictionary -> Field -> [(Path, String, Move)]
-getWords prefixDictionary field = getWords' prefixDictionary field (getAvailableMoves field)
+getWords dict field = mkUniq $ do
+  move <- getAvailableMoves field
+  wordsForMove dict field move
 
-getWords' :: PrefixDictionary -> Field -> [Move] -> [(Path, String, Move)]
-getWords' prefixDictionary field moves = mkUniq $ concatMap (getWords'' prefixDictionary field) moves
+wordsForMove :: PrefixDictionary -> Field -> Move -> [(Path, String, Move)]
+wordsForMove dict field move@(cell, letter) = do
+  let updatedField = replaceLetter field cell letter
+  (word, path) <- wordsTouchingCell dict updatedField cell
+  return (path, word, move)
 
-getWords'' :: PrefixDictionary -> Field -> Move -> [(Path, String, Move)]
-getWords'' prefixDictionary field (cell, letter) = map (\(word, path) -> (path, word, (cell, letter))) (getWords''' prefixDictionary fieldAfterMove cell)
-  where
-    fieldAfterMove = replaceLetter field cell letter
-
-getWords''' :: PrefixDictionary -> Field -> Cell -> [WordPath]
-getWords''' prefixDictionary field updatedCell = concatMap (filter (\(_, path) -> updatedCell `elem` path) . findWordPaths prefixDictionary field) (cellsWithLetters field)
+wordsTouchingCell :: PrefixDictionary -> Field -> Cell -> [WordPath]
+wordsTouchingCell dict field cell = do
+  start <- cellsWithLetters field
+  wordPath@(_, path) <- findWordPaths dict field start
+  guard (cell `elem` path)
+  return wordPath
 
 -- | DFS to find all words starting from a given cell.
 -- Returns list of (word, path) pairs.
@@ -71,9 +74,9 @@ findWordPaths (PrefixDictionary prefixes) field start = dfs start (S.singleton s
       | word `S.member` prefixes =
           wordPathSoFar : do
             cell <- reachableCells field current visited
-            let newPath = appendCell field wordPathSoFar cell
-                newVisited = S.insert cell visited
-            dfs cell newVisited newPath
+            let newVisited = S.insert cell visited
+                newWordPath = appendCell field wordPathSoFar cell
+            dfs cell newVisited newWordPath
       | otherwise = []
 
 mkUniq :: (Hashable a) => [a] -> [a]
